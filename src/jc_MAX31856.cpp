@@ -3,7 +3,6 @@
 // Copyright (C) 2019 by Jack Christensen and licensed under
 // GNU GPL v3.0, https://www.gnu.org/licenses/gpl.html
 
-#include <SPI.h>
 #include <jc_MAX31856.h>
 
 void jc_MAX31856::begin()
@@ -80,22 +79,30 @@ void jc_MAX31856::factory()
     regs.SR     = 0x00;
 }
 
-// return raw thermocouple temperature as an integer, degrees Celsius * 128.
+// return linearized temperature high fault threshold as integer in °C*16
+int16_t jc_MAX31856::getLTHFT()
+{
+    return (static_cast<int16_t>(regs.LTHFTH) << 8)
+          + static_cast<int16_t>(regs.LTHFTL);
+}
+
+// return linearized temperature low fault threshold as integer in °C*16
+int16_t jc_MAX31856::getLTLFT()
+{
+    return (static_cast<int16_t>(regs.LTLFTH) << 8)
+          + static_cast<int16_t>(regs.LTLFTL);
+}
+
+// return cold junction temperature as integer in °C*64
+int16_t jc_MAX31856::getCJT()
+{
+    return static_cast<int16_t>((regs.CJTH << 8) + regs.CJTL) / 4;
+}
+
+// return linearized thermocouple temperature as an integer in °C*128
 int32_t jc_MAX31856::getLTCT()
 {
-return ((static_cast<int32_t>(regs.LTCBH) << 24)
-      + (static_cast<int32_t>(regs.LTCBM) << 16)
-      + (static_cast<int32_t>(regs.LTCBL) << 8)) / 8192L;
-}
-
-// return thermocouple temperature in Celsius as floating point
-float jc_MAX31856::getLTCT_C()
-{
-    return static_cast<float>(getLTCT()) / 128.0;
-}
-
-// return thermocouple temperature in Fahrenheit as floating point
-float jc_MAX31856::getLTCT_F()
-{
-    return getLTCT_C() * 1.8 + 32.0;
+    return ((static_cast<int32_t>(regs.LTCBH) << 24)
+          + (static_cast<int32_t>(regs.LTCBM) << 16)
+          + (static_cast<int32_t>(regs.LTCBL) << 8)) / 8192L;
 }

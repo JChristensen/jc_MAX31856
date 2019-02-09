@@ -23,20 +23,42 @@ class jc_MAX31856
         void dumpRegs();
         void factory();
 
-        uint8_t getCR0()   {return regs.CR0;}
-        uint8_t getCR1()   {return regs.CR1;}
-        uint8_t getMASK()  {return regs.MASK;}
-        int8_t  getCJHF()  {return static_cast<int8_t>(regs.CJHF);}
-        int8_t  getCJLF()  {return static_cast<int8_t>(regs.CJLF);}
-        int16_t getLTHFT() {return (static_cast<int16_t>(regs.LTHFTH) << 8) + regs.LTHFTL;}
-        int16_t getLTLFT() {return (static_cast<int16_t>(regs.LTLFTH) << 8) + regs.LTLFTL;}
-        int8_t  getCJTO()  {return static_cast<int8_t>(regs.CJTO);}
-        int16_t getCJT()   {return static_cast<int16_t>((regs.CJTH << 8) + regs.CJTL) / 4;}
-        int32_t getLTCT();
-        uint8_t getSR()    {return regs.SR;}
+        // return CR0, CR1, MASK, SR as single bytes
+        uint8_t getCR0()  {return regs.CR0;}
+        uint8_t getCR1()  {return regs.CR1;}
+        uint8_t getMASK() {return regs.MASK;}
+        uint8_t getSR()   {return regs.SR;}
 
-        float getLTCT_C();
-        float getLTCT_F();
+        // return cold junction high and low fault threshold
+        int8_t getCJHF() {return static_cast<int8_t>(regs.CJHF);}   // as integer in °C
+        int8_t getCJLF() {return static_cast<int8_t>(regs.CJLF);}   // as integer in °C
+        float getCJHF_C() {return static_cast<float>(getCJHF());}   // as floating point in °C
+        float getCJLF_C() {return static_cast<float>(getCJLF());}   // as floating point in °C
+        float getCJHF_F() {return getCJHF_C() * 1.8 + 32.0;}        // as floating point in °F
+        float getCJLF_F() {return getCJLF_C() * 1.8 + 32.0;}        // as floating point in °F
+
+        // return linearized temperature high and low fault threshold
+        int16_t getLTHFT();     //  as integer in °C*16
+        int16_t getLTLFT();     //  as integer in °C*16
+        float getLTHFT_C() {return static_cast<float>(getLTHFT()) / 16.0;}  // as floating point in °C
+        float getLTLFT_C() {return static_cast<float>(getLTLFT()) / 16.0;}  // as floating point in °C
+        float getLTHFT_F() {return getLTHFT_C() * 1.8 + 32.0;}              // as floating point in °F
+        float getLTLFT_F() {return getLTLFT_C() * 1.8 + 32.0;}              // as floating point in °F
+
+        // return cold junction temperature offset
+        int8_t getCJTO() {return static_cast<int8_t>(regs.CJTO);}           // as integer in °C*16
+        float getCJTO_C() {return static_cast<float>(getCJTO()) / 16.0;}    // as floating point in °C
+        float getCJTO_F() {return getCJTO_C() * 1.8 + 32.0;}                // as floating point in °F
+
+        // return cold junction temperature
+        int16_t getCJT();                                                   // as integer in °C*64
+        float getCJT_C() {return static_cast<float>(getCJT()) / 64.0;}      // as floating point in °C
+        float getCJT_F() {return getCJT_C() * 1.8 + 32.0;}                  // as floating point in °F
+
+        // return linearized thermocouple temperature
+        int32_t getLTCT();  // as integer in °C*128
+        float getLTCT_C() {return static_cast<float>(getLTCT()) / 128.0;}   // as floating point in °C
+        float getLTCT_F() {return getLTCT_C() * 1.8 + 32.0;}                // as floating point in °F
 
         void setCR0(uint8_t val) {regs.CR0 = val;}
         void setCR1(uint8_t val) {regs.CR1 = val;}
@@ -47,6 +69,9 @@ class jc_MAX31856
         void setLTLFT(int16_t val) {}
         void setCJTO(int8_t val) {regs.CJTO = static_cast<uint8_t>(val);}
         void setCJT(int16_t val) {}
+        
+        float C_to_F(float c) {return c * 1.8 + 32.0;}
+        float F_to_C(float f) {return (f - 32.0) / 1.8;}
 
     private:
         struct              // MAX31856 registers

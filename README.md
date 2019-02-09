@@ -15,4 +15,27 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/gpl.html>
 
 ## Introduction
-Arduino library for the Maxim Integrated MAX31856 Thermocouple to Digital Converter.
+The Maxim Integrated MAX31856 Thermocouple to Digital Converter has 16 eight-bit registers representing 11 parameters as follows:
+
+* CR0 - Configuration Register 0
+* CR1 - Configuration Register 1
+* MASK - Fault Mask Register
+* CJHF - Cold Junction High Fault Threshold
+* CJLF - Cold Junction Low Fault Threshold
+* LTHFT - Linearized Temperature High Fault Threshold (2 bytes)
+* LTLFT - Linearized Temperature Low Fault Threshold (2 bytes)
+* CJTO - Cold Junction Temperature Offset
+* CJT - Cold Junction Temperature (2 bytes)
+* LTC - Linearized Thermocouple Temperature (3 bytes)
+* SR - Fault Status Register (read-only)
+
+LTC and SR are read-only. CJT is read-only unless the cold junction sensor is disabled by CJ bit in CR0.
+
+This library works by maintaining a copy of the registers in static RAM. The read() function reads all registers from the MAX31856 into SRAM and the write() function writes all values from SRAM to the MAX31856 for those registers that are not read-only.
+
+A series of get and set functions are provided to retrieve and change the register values held in static RAM.
+
+To retrieve current register values from the MAX31856, first call read(), then one or more of the get functions as needed.
+
+To change register values in the MAX31856, first call read(), then call one or more of the set functions to change values as needed, then call write().
+
