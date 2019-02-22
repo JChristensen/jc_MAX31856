@@ -5,15 +5,18 @@
 
 #include <jc_MAX31856.h>
 
+// set up the hardware and do an initial read
 void jc_MAX31856::begin()
 {
     pinMode(m_ssPin, OUTPUT);
     digitalWrite(m_ssPin, HIGH);
     SPI.begin();
+    read();
 }
 
-// read all registers from the MAX31856 (16 bytes)
-void jc_MAX31856::read()
+// read all registers from the MAX31856 (16 bytes),
+// return value of fault status register
+uint8_t jc_MAX31856::read()
 {
     SPI.beginTransaction(SPISettings(spiFreq, spiBitOrder, spiMode));
     digitalWrite(m_ssPin, LOW);
@@ -25,16 +28,22 @@ void jc_MAX31856::read()
     }
     SPI.endTransaction();
     digitalWrite(m_ssPin, HIGH);
+    return regs.SR;
 }
 
-// write all registers that are not read-only to the MAX31856 (12 bytes)
+// write all registers that are not read-only to the MAX31856
 void jc_MAX31856::write()
 {
+    // if the cold junction sensor is disabled, then the cold
+    // junction temperature registers can be written, so
+    // write 12 bytes, else write 10 bytes (excluding CJTH and CJTL)
+    uint8_t nReg = (regs.CR0 & _BV(CR0_CJDISABLE)) ? 12 : 10;
+    
     SPI.beginTransaction(SPISettings(spiFreq, spiBitOrder, spiMode));
     digitalWrite(m_ssPin, LOW);
     uint8_t *p = &regs.CR0;         // pointer to the register struct
     SPI.transfer(0x80);             // address byte, start at address zero
-    for (uint8_t i=0; i<12; i++)    // write 12 bytes
+    for (uint8_t i=0; i<nReg; i++)
     {
         SPI.transfer(*p++);
     }
@@ -73,8 +82,8 @@ void jc_MAX31856::factory()
     regs.CJTO   = 0x00;
     regs.CJTH   = 0x00;
     regs.CJTL   = 0x00;
-    regs.LTCBH  = 0xff;
-    regs.LTCBM  = 0xf0;
+    regs.LTCBH  = 0x00;
+    regs.LTCBM  = 0x00;
     regs.LTCBL  = 0x00;
     regs.SR     = 0x00;
 }
@@ -105,4 +114,41 @@ int32_t jc_MAX31856::getLTCT()
     return ((static_cast<int32_t>(regs.LTCBH) << 24)
           + (static_cast<int32_t>(regs.LTCBM) << 16)
           + (static_cast<int32_t>(regs.LTCBL) << 8)) / 8192L;
+}
+
+// set averaging mode
+void jc_MAX31856::setAvgSel(avgsel_t val)
+{
+    uint8_t cr1 = regs.CR1 & 0x0f;
+    regs.CR1 = cr1 | val;
+}
+
+// set thermocouple type
+void jc_MAX31856::setTcType(tctype_t val)
+{
+    uint8_t cr1 = regs.CR1 & 0xf0;
+    regs.CR1 = cr1 | val;
+}
+
+// set thermocouple temperature high and low fault thresholds as integer in °C*16
+void jc_MAX31856::setLTHFT(int16_t val)
+{
+    regs.LTHFTH = val >> 8;
+    regs.LTHFTL = val & 0xff;
+}
+
+void jc_MAX31856::setLTLFT(int16_t val)
+{
+    regs.LTLFTH = val >> 8;
+    regs.LTLFTL = val & 0xff;
+}
+
+// set cold junction temperature given as integer in °C*64
+// (for when an external CJ sensor is used)
+// max 127.984375°C, min -128°C but clamped by the chip at -64°C
+void jc_MAX31856::setCJT(int16_t val)
+{
+    val <<= 2;
+    regs.CJTH = val >> 8;
+    regs.CJTL = val & 0xff;
 }

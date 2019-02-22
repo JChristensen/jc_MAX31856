@@ -12,25 +12,32 @@ jc_MAX31856 tc1(10);
 
 void setup()
 {
-    Serial.begin(115200);
+    Serial.begin(57600);
     Serial << F( "\n" __FILE__ " " __DATE__ " " __TIME__ "\n" );
+    delay(1000);
     tc1.begin();
-    //tc1.read();
-    tc1.factory();
     tc1.dumpRegs();
-    Serial << "CR0 0x" << _HEX(tc1.getCR0()) << endl;
-    Serial << "CR1 0x" << _HEX(tc1.getCR1()) << endl;
-    Serial << "MASK 0x" << _HEX(tc1.getMASK()) << endl;
-    Serial << "SR 0x" << _HEX(tc1.getSR()) << endl;
-    Serial << "CJHF " << tc1.getCJHF_C() << "C " << tc1.getCJHF_F() << "F\n";
-    Serial << "CJLF " << tc1.getCJLF_C() << "C " << tc1.getCJLF_F() << "F\n";
-    Serial << "LTHFT " << tc1.getLTHFT_C() << "C " << tc1.getLTHFT_F() << "F\n";
-    Serial << "LTLFT " << tc1.getLTLFT_C() << "C " << tc1.getLTLFT_F() << "F\n";
-    Serial << "CJTO " << tc1.getCJTO_C() << "C " << tc1.getCJTO_F() << "F\n";
-    Serial << "CJT " << tc1.getCJT_C() << "C " << tc1.getCJT_F() << "F\n";
-    Serial << "LTC " << tc1.getLTCT_C() << "C " << tc1.getLTCT_F() << "F\n";
+    tc1.setTcType(jc_MAX31856::K_TYPE);
+    tc1.setAvgSel(jc_MAX31856::AVG4);
+    tc1.setCR0(_BV(jc_MAX31856::CR0_CMODE) | _BV(jc_MAX31856::CR0_OCFAULT0));
+    tc1.setMASK(0);     // unmask all faults
+    //tc1.setLTHFT_F(212); tc1.setLTLFT_F(77);
+    tc1.write();
+    tc1.read();
+    tc1.dumpRegs();
+    Serial << F("CJ Fault  ") << tc1.getCJHF_C() << F("C ") << tc1.getCJHF_F() << F("F  ");
+    Serial << tc1.getCJLF_C() << F("C ") << tc1.getCJLF_F() << F("F\n");
+    Serial << F("TC Fault  ") << tc1.getLTHFT_C() << F("C ") << tc1.getLTHFT_F() << F("F  ");
+    Serial << tc1.getLTLFT_C() << F("C ") << tc1.getLTLFT_F() << F("F\n");
+    Serial << F("CJ Offset ") << tc1.getCJTO_C() << F("C ") << tc1.getCJTO_F() << F("F\n");
 }
 
 void loop()
 {
+    delay(5000);
+    tc1.read();
+    Serial << endl;
+    tc1.dumpRegs();
+    Serial << F("CJ Temp ") << tc1.getCJT_C() << F("C ") << tc1.getCJT_F() << F("F\n");
+    Serial << F("TC Temp ") << tc1.getLTCT_C() << F("C ") << tc1.getLTCT_F() << F("F\n");
 }
