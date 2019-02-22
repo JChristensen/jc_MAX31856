@@ -17,11 +17,9 @@ void setup()
     delay(1000);
     tc1.begin();
     tc1.dumpRegs();
-    tc1.setTcType(jc_MAX31856::K_TYPE);
     tc1.setAvgSel(jc_MAX31856::AVG4);
     tc1.setCR0(_BV(jc_MAX31856::CR0_CMODE) | _BV(jc_MAX31856::CR0_OCFAULT0));
     tc1.setMASK(0);     // unmask all faults
-    //tc1.setLTHFT_F(212); tc1.setLTLFT_F(77);
     tc1.write();
     tc1.read();
     tc1.dumpRegs();

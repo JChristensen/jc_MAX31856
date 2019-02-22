@@ -38,7 +38,7 @@ void jc_MAX31856::write()
     // junction temperature registers can be written, so
     // write 12 bytes, else write 10 bytes (excluding CJTH and CJTL)
     uint8_t nReg = (regs.CR0 & _BV(CR0_CJDISABLE)) ? 12 : 10;
-    
+
     SPI.beginTransaction(SPISettings(spiFreq, spiBitOrder, spiMode));
     digitalWrite(m_ssPin, LOW);
     uint8_t *p = &regs.CR0;         // pointer to the register struct

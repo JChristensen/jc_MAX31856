@@ -86,7 +86,7 @@ class jc_MAX31856
         // return cold junction temperature offset
         int8_t getCJTO() {return static_cast<int8_t>(regs.CJTO);}           // as integer in °C*16
         float getCJTO_C() {return static_cast<float>(getCJTO()) / 16.0;}    // as floating point in °C
-        float getCJTO_F() {return CtoF(getCJTO_C());}                       // as floating point in °F
+        float getCJTO_F() {return getCJTO_C() * 1.8;}                       // as floating point in °F
 
         // return cold junction temperature
         int16_t getCJT();                                                   // as integer in °C*64
@@ -105,7 +105,7 @@ class jc_MAX31856
         void setAvgSel(avgsel_t val);                                       // CR1 bits 6:4
         void setTcType(tctype_t val);                                       // CR1 bits 3:0
 
-        // set cold junction high and low fault thresholds (max 127°C, min -128°C)
+        // set cold junction high and low fault thresholds (-128°C to 127°C)
         void setCJHF(int8_t val) {regs.CJHF = static_cast<uint8_t>(val);}   // as integer in °C
         void setCJLF(int8_t val) {regs.CJLF = static_cast<uint8_t>(val);}   // as integer in °C
         void setCJHF_C(float val) {setCJHF(static_cast<float>(val));}       // as floating point in °C
@@ -113,7 +113,7 @@ class jc_MAX31856
         void setCJHF_F(float val) {setCJHF_C(FtoC(val));}                   // as floating point in °F
         void setCJLF_F(float val) {setCJLF_C(FtoC(val));}                   // as floating point in °F
 
-        // set thermocouple temperature high and low fault thresholds (max 2047.9375°C, min -2048.0000°C)
+        // set thermocouple temperature high and low fault thresholds (-2048.0000°C to 2047.9375°C)
         void setLTHFT(int16_t val);                                         // as integer in °C*16
         void setLTLFT(int16_t val);                                         // as integer in °C*16
         void setLTHFT_C(float val) {setLTHFT(val * 16.0);}                  // as floating point in °C
@@ -121,14 +121,16 @@ class jc_MAX31856
         void setLTHFT_F(float val) {setLTHFT_C(FtoC(val));}                 // as floating point in °F
         void setLTLFT_F(float val) {setLTLFT_C(FtoC(val));}                 // as floating point in °F
 
-        // set cold junction offset (max 7.9375°C, min -8.0000°C)
+        // set cold junction offset (-8.0000°C to 7.9375°C)
         void setCJTO(int8_t val) {regs.CJTO = static_cast<uint8_t>(val);}   // as integer in °C*16
         void setCJTO_C(float val) {setCJTO(val * 16.0);}                    // as floating point in °C
-        void setCJTO_F(float val) {setCJTO_C(FtoC(val));}                   // as floating point in °F
-        
+        void setCJTO_F(float val) {setCJTO_C(val / 1.8);}                   // as floating point in °F
+
         // set cold junction temperature (for when an external CJ sensor is used)
-        // max 127.984375°C, min -128°C but clamped by the chip at -64°C
-        void setCJT(int16_t val);             // as integer in °C*64
+        // range -64°C to 127.984375°C, the minimum is clamped by the chip (else would be -128°C)
+        void setCJT(int16_t val);                                           // as integer in °C*64
+        void setCJT_C(float val) {setCJT(val * 64.0);}                      // as floating point in °C
+        void setCJT_F(float val) {setCJT_C(FtoC(val));}                     // as floating point in °F
 
         // temperature conversions
         float CtoF(float c) {return c * 1.8 + 32.0;}
