@@ -31,12 +31,12 @@ The Maxim Integrated MAX31856 Thermocouple to Digital Converter has 16 eight-bit
 
 LTC and SR are read-only. CJT is read-only unless the cold junction sensor is disabled by CJ bit in CR0.
 
-This library works by maintaining a copy of the registers in static RAM. The read() function reads all registers from the MAX31856 into SRAM and the write() function writes all values from SRAM to the MAX31856 for those registers that are not read-only.
+This library works by maintaining a copy of the registers in static RAM. The `read()` function reads all registers from the MAX31856 into SRAM and the `write()` function writes all values from SRAM to the MAX31856 for those registers that are not read-only.
 
-A series of get and set functions are provided to retrieve and change the register values held in static RAM, see the .h file.
+A series of get and set functions are provided to retrieve and change the register values held in static RAM, see [the .h file](https://github.com/JChristensen/jc_MAX31856/blob/master/src/jc_MAX31856.h).
 
-To retrieve current register values from the MAX31856, first call read(), then one or more of the get functions as needed.
+To retrieve current register values from the MAX31856, first call `read()`, then one or more of the get functions as needed.
 
-To change register values in the MAX31856, first call read(), then call one or more of the set functions to change values as needed, then call write().
+To change register values in the MAX31856, first call `read()`, then call one or more of the set functions to change values as needed, then call `write()`.
 
-When writing values to any of the fault threshold, cold junction offset or cold junction temperature registers, the user must ensure that the values are constrained to the ranges appropriate for the register(s). Ranges are noted in the .h file; also see the MAX31856 datasheet.
+When writing values to any of the fault threshold, cold junction offset or cold junction temperature registers, the user must ensure that the values are constrained to the ranges appropriate for the register(s). Ranges are noted in [the .h file](https://github.com/JChristensen/jc_MAX31856/blob/master/src/jc_MAX31856.h); also see the MAX31856 datasheet.
